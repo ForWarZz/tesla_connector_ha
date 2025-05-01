@@ -5,11 +5,8 @@ import logging
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.core import callback
-import homeassistant.helpers.config_validation as cv
 
-from .const import CONF_REFRESH_TOKEN, CONF_VIN, DOMAIN, CONF_WALL_CONNECTOR_ID
+from .const import CONF_REFRESH_TOKEN, CONF_VIN, CONF_WALL_CONNECTOR_ID, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

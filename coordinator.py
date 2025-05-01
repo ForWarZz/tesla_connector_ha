@@ -3,6 +3,7 @@
 import asyncio
 import logging
 
+from config.custom_components.tesla_connector.models.device import TeslaBaseDevice
 from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
 from config.custom_components.tesla_connector.models.wall_connector.wall_connector import (
     WallConnector,
@@ -20,77 +21,81 @@ from .const import UPDATE_INTERVAL, DOMAIN, COORDINATOR_TIMEOUT
 _LOGGER = logging.getLogger(__name__)
 
 
-class TeslaVehicleCoordinator(DataUpdateCoordinator):
-    """Tesla Vehicle Data Update Coordinator."""
+class TeslaBaseCoordinator(DataUpdateCoordinator):
+    """Base class for Tesla coordinators."""
 
-    def __init__(self, hass: HomeAssistant, vehicle: TeslaVehicle) -> None:
+    def __init__(self, hass: HomeAssistant, device: TeslaBaseDevice, name: str) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
-            name="Tesla vehicle coordinator",
+            name=name,
             update_interval=timedelta(seconds=UPDATE_INTERVAL),
             update_method=self._async_update_data,
             always_update=True,
         )
 
-        self._vehicle = vehicle
+        self._device = device
+
+    @property
+    def device(self) -> TeslaBaseDevice:
+        """Return the Tesla device."""
+        return self._device
 
     async def _async_update_data(self) -> dict:
-        try:
-            async with asyncio.timeout(COORDINATOR_TIMEOUT):
-                return await self._vehicle.async_get_vehicle_data()
-        except Exception:
-            _LOGGER.exception("Error fetching tesla data")
-            return self._vehicle.current_data
+        """Update data from the API."""
+        raise NotImplementedError("This method should be overridden in subclasses.")
+
+    def get_device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device.device_id)},
+            manufacturer="Tesla",
+            name=f"Tesla {self._device.device_id}",
+        )
+
+
+class TeslaVehicleCoordinator(TeslaBaseCoordinator):
+    """Tesla Vehicle Data Update Coordinator."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        vehicle: TeslaVehicle,
+    ) -> None:
+        """Initialize the coordinator."""
+        super().__init__(hass, vehicle, name="Tesla Vehicle Coordinator")
 
     @property
     def vehicle(self) -> TeslaVehicle:
         """Return the Tesla vehicle."""
-        return self._vehicle
-
-    def get_vehicle_device_info(self) -> DeviceInfo:
-        """Return device information for the vehicle."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._vehicle.vin)},
-            manufacturer="Tesla",
-            name=f"Tesla {self._vehicle.vin}",
-        )
-
-
-class TeslaWallConnectorCoordinator(DataUpdateCoordinator):
-    """Tesla Wall Connector Data Update Coordinator."""
-
-    def __init__(self, hass: HomeAssistant, wall_connector: WallConnector) -> None:
-        """Initialize the coordinator."""
-        super().__init__(
-            hass,
-            _LOGGER,
-            name="Tesla wall connector coordinator",
-            update_interval=timedelta(seconds=UPDATE_INTERVAL),
-            update_method=self._async_update_data,
-            always_update=True,
-        )
-
-        self._wall_connector = wall_connector
+        return self._device
 
     async def _async_update_data(self) -> dict:
         try:
             async with asyncio.timeout(COORDINATOR_TIMEOUT):
-                return await self._wall_connector.async_get_wall_connector_data()
+                return await self.vehicle.async_get_vehicle_data()
         except Exception:
-            _LOGGER.exception("Error fetching wall connector data")
-            return self._wall_connector.current_data
+            _LOGGER.exception("Error fetching tesla data")
+            return self.vehicle.current_data
+
+
+class TeslaWallConnectorCoordinator(TeslaBaseCoordinator):
+    """Tesla Wall Connector Data Update Coordinator."""
+
+    def __init__(self, hass: HomeAssistant, wall_connector: WallConnector) -> None:
+        """Initialize the coordinator."""
+        super().__init__(hass, wall_connector, name="Tesla Wall Connector Coordinator")
 
     @property
     def wall_connector(self) -> WallConnector:
         """Return the Tesla Wall Connector."""
-        return self._wall_connector
+        return self._device
 
-    def get_wall_connector_device_info(self) -> DeviceInfo:
-        """Return device information for the wall connector."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._wall_connector.wall_connector_id)},
-            manufacturer="Tesla",
-            name=f"Tesla Wall Connector {self._wall_connector.wall_connector_id}",
-        )
+    async def _async_update_data(self) -> dict:
+        try:
+            async with asyncio.timeout(COORDINATOR_TIMEOUT):
+                return await self.wall_connector.async_get_wall_connector_data()
+        except Exception:
+            _LOGGER.exception("Error fetching wall connector data")
+            return self.wall_connector.current_data

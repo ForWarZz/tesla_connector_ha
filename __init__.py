@@ -8,20 +8,18 @@ from config.custom_components.tesla_connector.models.vehicle.vehicle import Tesl
 from config.custom_components.tesla_connector.models.wall_connector.wall_connector import (
     WallConnector,
 )
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_REFRESH_TOKEN,
     CONF_VIN,
+    CONF_WALL_CONNECTOR_ID,
     DOMAIN,
     PLATFORMS,
-    CONF_WALL_CONNECTOR_ID,
 )
-from .owner_api.client import TeslaAPIClient
-
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
+from .owner_api.client import TeslaAPIClient
 
 _LOGGER = logging.getLogger(__name__)
 

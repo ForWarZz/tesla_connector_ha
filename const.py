@@ -36,6 +36,7 @@ SENSOR_ODOMETER = "odometer"
 SENSOR_CHARGER_VOLTAGE = "charger_voltage"
 
 SENSOR_WALL_CONNECTOR_VIN = "vin"
+SENSOR_WALL_CONNECTOR_SESSION_CHARGE = "session_charge"
 
 # Binary Sensor Types
 BINARY_SENSOR_LOCKED = "locked"

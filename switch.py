@@ -1,36 +1,30 @@
 """Tesla Connector Sensor Integration."""
 
-from homeassistant.components.switch import SwitchEntity, SwitchDeviceClass
+from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    PERCENTAGE,
-    UnitOfElectricCurrent,
-    UnitOfLength,
-    UnitOfTime,
-)
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import utils
-from .const import DOMAIN, BINARY_SENSOR_LOCKED, SENSOR_CHARGING_STATE
+from .base_sensor import TeslaBaseSensor, TeslaSensorDescription
+from .const import BINARY_SENSOR_LOCKED, DOMAIN, SENSOR_CHARGING_STATE
 from .coordinator import TeslaVehicleCoordinator
 
-SWITCH_MAPPING = {
-    BINARY_SENSOR_LOCKED: {
-        "name": "Véhicule verrouillé",
-        "unit": None,
-        "device_class": SwitchDeviceClass.SWITCH,
-        "icon": "mdi:lock",
-        "value_path": "vehicle_state.locked",
-    },
-    SENSOR_CHARGING_STATE: {
-        "name": "Véhicule en charge",
-        "unit": None,
-        "device_class": SwitchDeviceClass.SWITCH,
-        "icon": "mdi:car-electric",
-        "value_path": "charge_state.charging_state",
-    },
+SWITCH_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
+    BINARY_SENSOR_LOCKED: TeslaSensorDescription(
+        name="Véhicule verrouillé",
+        value_path="vehicle_state.locked",
+        unit=None,
+        device_class=SwitchDeviceClass.SWITCH,
+        icon="mdi:lock",
+    ),
+    SENSOR_CHARGING_STATE: TeslaSensorDescription(
+        name="Véhicule en charge",
+        value_path="charge_state.charging_state",
+        unit=None,
+        device_class=SwitchDeviceClass.SWITCH,
+        icon="mdi:car-electric",
+    ),
 }
 
 
@@ -43,49 +37,30 @@ async def async_setup_entry(
     coordinator: TeslaVehicleCoordinator = hass.data[DOMAIN][entry.entry_id]["vehicle"]
     switches = []
 
-    for switch_key, switch_description in SWITCH_MAPPING.items():
+    for switch_key, switch_description in SWITCH_DESCRIPTIONS.items():
         switches.append(TeslaSwitch(coordinator, switch_key, switch_description))
 
     async_add_entities(switches)
 
 
-class TeslaSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of a Tesla sensor."""
+class TeslaSwitch(TeslaBaseSensor, SwitchEntity):
+    """Representation of a Tesla switch."""
 
     def __init__(
-        self, coordinator: TeslaVehicleCoordinator, key: str, description: dict
+        self,
+        coordinator: TeslaVehicleCoordinator,
+        key: str,
+        description: TeslaSensorDescription,
     ) -> None:
-        """Initialize the Tesla sensor."""
-        super().__init__(coordinator)
-        self._key = key
-        self._description = description
-        self._value_path = description["value_path"]
-        self._vehicle = coordinator.vehicle
+        """Initialize the Tesla switch."""
+        super().__init__(coordinator, key, description)
+        self._vehicle: TeslaVehicle = self._device
 
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID for the sensor."""
-        return f"{DOMAIN}_{self._vehicle.vin}_{self._key}"
-
-    @property
-    def device_info(self) -> dict:
-        """Return device information."""
-        return self.coordinator.get_vehicle_device_info()
-
-    @property
-    def device_class(self) -> SwitchDeviceClass:
-        """Return the device class of the sensor."""
-        return self._description["device_class"]
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return self._description["name"]
-
-    @property
-    def icon(self) -> str:
-        """Return the icon of the sensor."""
-        return self._description["icon"]
+    def _update_state(self, value):
+        """Update the state of the switch."""
+        self._attr_is_on = (
+            value == "Charging" if self._key == SENSOR_CHARGING_STATE else value
+        )
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn the switch on."""
@@ -104,17 +79,3 @@ class TeslaSwitch(CoordinatorEntity, SwitchEntity):
             await self._vehicle.async_stop_charge()
 
         await self.coordinator.async_request_refresh()
-
-    @callback
-    def _handle_coordinator_update(self):
-        """Handle updated data from the coordinator."""
-        data = self.coordinator.data
-        value = utils.get_value_from_path(data, self._value_path)
-        self._vehicle = self.coordinator.vehicle
-
-        if self._key == SENSOR_CHARGING_STATE:
-            self._attr_is_on = value == "Charging"
-        else:
-            self._attr_is_on = value
-
-        return super()._handle_coordinator_update()
