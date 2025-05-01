@@ -21,7 +21,7 @@ from ...owner_api.exceptions import (
     TeslaBaseException,
 )
 
-from .vehicle_data import VehicleData
+from .vehicle_data import VehicleData, ChargingState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,14 +102,44 @@ class TeslaVehicle(TeslaBaseDevice):
 
     async def async_start_charge(self) -> TeslaAPIResponse:
         """Toggle the charge state of the vehicle."""
-        return await self._async_send_command(
+        result = await self._async_send_command(
             partial(self._apiClient.async_start_charge, self.vin)
         )
 
+        await self.async_wait_charging_state(ChargingState.CHARGING)
+
+        return result
+
     async def async_stop_charge(self) -> TeslaAPIResponse:
         """Toggle the charge state of the vehicle."""
-        return await self._async_send_command(
+        result = await self._async_send_command(
             partial(self._apiClient.async_stop_charge, self.vin)
+        )
+
+        await self.async_wait_charging_state(ChargingState.STOPPED)
+
+        return result
+
+    async def async_wait_charging_state(self, state: ChargingState) -> None:
+        """Wait for the vehicle to reach a specific charging state."""
+        start_time = datetime.now()
+        _LOGGER.debug("Waiting for vehicle to reach charging state %s", state)
+
+        while datetime.now() - start_time < timedelta(seconds=):
+            await asyncio.sleep(2)
+            await self.async_get_vehicle_data()
+
+            if self.current_data.charge_state.charging_state == state:
+                time = datetime.now() - start_time
+                _LOGGER.debug(
+                    "Vehicle reached charging state %s in %ss",
+                    self.current_data.charge_state.charging_state,
+                    time.total_seconds(),
+                )
+                return
+
+        raise TeslaBaseException(
+            f"Vehicle did not reach charging state {state} in time"
         )
 
     async def async_set_charge_limit(self, limit: int) -> TeslaAPIResponse:

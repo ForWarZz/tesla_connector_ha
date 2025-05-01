@@ -73,5 +73,7 @@ class TeslaNumber(TeslaBaseNumber):
             await self._vehicle.async_set_charge_limit(int(value))
         elif self._key == SENSOR_CHARGE_AMPS:
             await self._vehicle.async_set_charge_amps(int(value))
+            if value < 5:
+                await self._vehicle.async_set_charge_amps(int(value))
 
         await self.coordinator.async_request_refresh()

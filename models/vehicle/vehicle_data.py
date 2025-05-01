@@ -4,10 +4,10 @@
 class ChargingState:
     """Class to hold charging state."""
 
-    NOT_CHARGING = "NotCharging"
+    STOPPED = "Stopped"
+    STARTING = "Starting"
     CHARGING = "Charging"
     COMPLETE = "Complete"
-    SUSPENDED = "Suspended"
     DISCONNECTED = "Disconnected"
 
 
@@ -26,7 +26,7 @@ class VehicleChargeState:
         self.charge_current_request_max = data.get("charge_current_request_max", 0)
         self.charge_limit_soc = data.get("charge_limit_soc", 0)
         self.minutes_to_full_charge = data.get("minutes_to_full_charge", 0)
-        self.charging_state = data.get("charging_state", ChargingState.NOT_CHARGING)
+        self.charging_state = data.get("charging_state", ChargingState.STOPPED)
         self.charger_voltage = data.get("charger_voltage", 240)
 
 

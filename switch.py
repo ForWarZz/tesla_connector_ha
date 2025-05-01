@@ -9,6 +9,7 @@ from .base_sensor import TeslaBaseSensor, TeslaSensorDescription
 from .const import BINARY_SENSOR_LOCKED, DOMAIN, SENSOR_CHARGING_STATE
 from .coordinator import TeslaVehicleCoordinator
 from .models.vehicle.vehicle import TeslaVehicle
+from .models.vehicle.vehicle_data import ChargingState
 
 SWITCH_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     BINARY_SENSOR_LOCKED: TeslaSensorDescription(
@@ -59,7 +60,9 @@ class TeslaSwitch(TeslaBaseSensor, SwitchEntity):
     def _update_state(self, value):
         """Update the state of the switch."""
         self._attr_is_on = (
-            value == "Charging" if self._key == SENSOR_CHARGING_STATE else value
+            value == ChargingState.CHARGING
+            if self._key == SENSOR_CHARGING_STATE
+            else value
         )
 
     async def async_turn_on(self, **kwargs) -> None:
