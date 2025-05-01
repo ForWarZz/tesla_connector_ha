@@ -1,0 +1,136 @@
+"""Vehicle model for Tesla vehicles."""
+
+import asyncio
+from collections.abc import Callable
+from datetime import datetime, timedelta
+from functools import partial
+import logging
+
+from aiohttp import ClientResponseError
+
+from config.custom_components.tesla_connector.const import (
+    COMMAND_TIMEOUT,
+    WAKE_UP_THRESHOLD,
+)
+from config.custom_components.tesla_connector.owner_api.api_response import (
+    TeslaAPIResponse,
+)
+from config.custom_components.tesla_connector.owner_api.client import TeslaAPIClient
+from config.custom_components.tesla_connector.owner_api.exceptions import (
+    TeslaBaseException,
+)
+
+from .vehicle_data import VehicleData
+
+_LOGGER = logging.getLogger(__name__)
+
+
+class TeslaVehicle:
+    """Representation of a Tesla vehicle."""
+
+    def __init__(self, vin: str, apiClient: TeslaAPIClient) -> None:
+        """Initialize a TeslaVehicle with a VIN and Tesla API client."""
+        self._vin = vin
+        self._apiClient = apiClient
+        self._current_data = None
+        self._last_wake_up: datetime = None
+
+    @property
+    def vin(self) -> str:
+        """Return the VIN of the vehicle."""
+        return self._vin
+
+    @property
+    def current_data(self) -> VehicleData:
+        """Return the current data of the vehicle (cached)."""
+        return self._current_data
+
+    async def async_get_vehicle_data(self) -> VehicleData:
+        """Get vehicle data from the Tesla API."""
+        try:
+            vehicle_data = await self._apiClient.async_get_vehicle_data(self._vin)
+            self._current_data = VehicleData(vehicle_data.data)
+        except ClientResponseError as err:
+            if err.status == 408:
+                _LOGGER.info(
+                    "Request timed out, vehicle is potentially offline.. getting cached data"
+                )
+                if self._current_data is not None:
+                    self._current_data.state = "offline"
+
+        return self._current_data
+
+    async def _async_wake_up(self) -> TeslaAPIResponse:
+        """Wake up the vehicle."""
+        return await self._apiClient.async_wake_up_car(self._vin)
+
+    async def async_ensure_car_woke_up(self) -> TeslaAPIResponse:
+        """Wake up the vehicle if necessary."""
+        should_wake_up = (
+            self._last_wake_up is None
+            or self._current_data.state == "offline"
+            or datetime.now() - self._last_wake_up
+            > timedelta(minutes=WAKE_UP_THRESHOLD)
+        )
+
+        if should_wake_up:
+            await self._async_wake_up()
+            self._last_wake_up = datetime.now()
+
+    async def _async_send_command(
+        self, command: Callable[..., TeslaAPIResponse]
+    ) -> TeslaAPIResponse:
+        """Send a command to the vehicle."""
+        start_time = datetime.now()
+        _LOGGER.debug("Sending command to vehicle: %s", self._vin)
+
+        await self.async_ensure_car_woke_up()
+        async with asyncio.timeout(delay=COMMAND_TIMEOUT):
+            response: TeslaAPIResponse = await command()
+            if not response.result:
+                raise TeslaBaseException(
+                    f"Command failed for vehicle vin: {self._vin} REASON: {response.reason}"
+                )
+
+        duration = datetime.now() - start_time
+        _LOGGER.info(
+            "Command completed for VIN %s in %ss", self._vin, duration.total_seconds()
+        )
+
+        return response
+
+    async def async_start_charge(self) -> TeslaAPIResponse:
+        """Toggle the charge state of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_start_charge, self._vin)
+        )
+
+    async def async_stop_charge(self) -> TeslaAPIResponse:
+        """Toggle the charge state of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_stop_charge, self._vin)
+        )
+
+    async def async_set_charge_limit(self, limit: int) -> TeslaAPIResponse:
+        """Set the charge limit of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_set_charge_limit, self._vin, limit)
+        )
+
+    async def async_set_charge_amps(self, amps: int) -> TeslaAPIResponse:
+        """Set the charge amps of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_set_charge_amps, self._vin, amps)
+        )
+
+    async def async_lock_doors(self) -> TeslaAPIResponse:
+        """Lock the doors of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_lock_doors, self._vin)
+        )
+
+    async def async_unlock_doors(self) -> TeslaAPIResponse:
+        """Unlock the doors of the vehicle."""
+        return await self._async_send_command(
+            partial(self._apiClient.async_unlock_doors, self._vin)
+        )

@@ -1,0 +1,17 @@
+{
+  "domain": "tesla_connector",
+  "name": "Tesla Connector",
+  "codeowners": [
+    "@forwarzz"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "version": "0.1.0",
+  "documentation": "https://www.home-assistant.io/integrations/tesla_connector",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "quality_scale": "bronze",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": []
+}
