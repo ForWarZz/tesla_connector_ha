@@ -125,7 +125,7 @@ class TeslaVehicle(TeslaBaseDevice):
         start_time = datetime.now()
         _LOGGER.debug("Waiting for vehicle to reach charging state %s", state)
 
-        while datetime.now() - start_time < timedelta(seconds=):
+        while datetime.now() - start_time < timedelta(seconds=COMMAND_TIMEOUT):
             await asyncio.sleep(2)
             await self.async_get_vehicle_data()
 
