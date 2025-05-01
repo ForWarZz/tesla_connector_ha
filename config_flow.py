@@ -1,52 +1,10 @@
 """Config flow for Tesla Connector."""
 
-import logging
-
 import voluptuous as vol
 
 from homeassistant import config_entries
 
 from .const import CONF_REFRESH_TOKEN, CONF_VIN, CONF_WALL_CONNECTOR_ID, DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
-
-
-# class TeslaConnectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-#     """Handle a config flow for Tesla Connector."""
-
-#     def _get_schema(self):
-#         """Return the schema for the form."""
-#         return vol.Schema(
-#             {
-#                 vol.Required(CONF_REFRESH_TOKEN): cv.string,
-#                 vol.Required(CONF_VIN): cv.string,
-#             }
-#         )
-
-#     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
-#         """Handle the initial step."""
-#         errors = {}
-
-#         if user_input is not None:
-#             refresh_token = user_input.get(CONF_REFRESH_TOKEN)
-#             vin = user_input.get(CONF_VIN)
-
-#             if not refresh_token or not vin:
-#                 errors["base"] = "missing_fields"
-#             else:
-#                 return self.async_create_entry(
-#                     title="Tesla Connector",
-#                     data={
-#                         CONF_REFRESH_TOKEN: refresh_token,
-#                         CONF_VIN: vin,
-#                     },
-#                 )
-
-#         return self.async_show_form(
-#             step_id="user",
-#             data_schema=self._get_schema(),
-#             errors=errors,
-#         )
 
 
 class TeslaConnectorConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
