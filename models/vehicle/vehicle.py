@@ -68,6 +68,7 @@ class TeslaVehicle(TeslaBaseDevice):
         """Wake up the vehicle if necessary."""
         should_wake_up = (
             self._last_wake_up is None
+            or self._current_data is None
             or self._current_data.state == "offline"
             or datetime.now() - self._last_wake_up
             > timedelta(minutes=WAKE_UP_THRESHOLD)
