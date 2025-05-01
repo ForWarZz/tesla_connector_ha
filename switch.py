@@ -1,6 +1,5 @@
 """Tesla Connector Sensor Integration."""
 
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -9,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .base_sensor import TeslaBaseSensor, TeslaSensorDescription
 from .const import BINARY_SENSOR_LOCKED, DOMAIN, SENSOR_CHARGING_STATE
 from .coordinator import TeslaVehicleCoordinator
+from .models.vehicle.vehicle import TeslaVehicle
 
 SWITCH_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     BINARY_SENSOR_LOCKED: TeslaSensorDescription(

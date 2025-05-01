@@ -6,12 +6,7 @@ import logging
 
 import aiohttp
 
-from config.custom_components.tesla_connector.const import (
-    OAUTH2_CLIENT_ID,
-    OAUTH2_TOKEN,
-    WAKE_UP_TIMEOUT,
-)
-
+from ..const import OAUTH2_CLIENT_ID, OAUTH2_TOKEN, WAKE_UP_TIMEOUT
 from .api_response import TeslaAPIResponse
 from .endpoints import (
     CHARGE_START_ENDPOINT,

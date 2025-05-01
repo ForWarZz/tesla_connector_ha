@@ -1,17 +1,14 @@
 """Binary sensor platform for Tesla Connector."""
 
-from config.custom_components.tesla_connector.base_sensor import (
-    TeslaBaseBinarySensor,
-    TeslaSensorDescription,
-)
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .base_sensor import TeslaBaseBinarySensor, TeslaSensorDescription
 from .const import BINARY_SENSOR_LOCKED, DOMAIN
 from .coordinator import TeslaVehicleCoordinator
+from .models.vehicle.vehicle import TeslaVehicle
 
 BINARY_SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     BINARY_SENSOR_LOCKED: TeslaSensorDescription(

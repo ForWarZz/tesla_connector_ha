@@ -1,9 +1,5 @@
 """Tesla Connector Sensor Integration."""
 
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
-from config.custom_components.tesla_connector.models.wall_connector.wall_connector import (
-    WallConnector,
-)
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -33,6 +29,8 @@ from .const import (
     SENSOR_WALL_CONNECTOR_VIN,
 )
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
+from .models.vehicle.vehicle import TeslaVehicle
+from .models.wall_connector.wall_connector import WallConnector
 
 SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     SENSOR_BATTERY_LEVEL: TeslaSensorDescription(

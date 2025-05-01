@@ -3,18 +3,19 @@
 import asyncio
 import logging
 
-from config.custom_components.tesla_connector.models.device import TeslaBaseDevice
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
-from config.custom_components.tesla_connector.models.wall_connector.wall_connector import (
-    WallConnector,
-)
-from config.custom_components.tesla_connector.owner_api.exceptions import (
+from .owner_api.exceptions import (
     TeslaTokenException,
 )
+
+from .models.device import TeslaBaseDevice
+from .models.vehicle.vehicle import TeslaVehicle
+from .models.wall_connector.wall_connector import (
+    WallConnector,
+)
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, timedelta
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .const import UPDATE_INTERVAL, DOMAIN, COORDINATOR_TIMEOUT
 
@@ -75,6 +76,9 @@ class TeslaVehicleCoordinator(TeslaBaseCoordinator):
         try:
             async with asyncio.timeout(COORDINATOR_TIMEOUT):
                 return await self.vehicle.async_get_vehicle_data()
+        except TeslaTokenException:
+            _LOGGER.error("Tesla token expired, re-authentication required")
+            raise ConfigEntryAuthFailed
         except Exception:
             _LOGGER.exception("Error fetching tesla data")
             return self.vehicle.current_data
@@ -96,6 +100,9 @@ class TeslaWallConnectorCoordinator(TeslaBaseCoordinator):
         try:
             async with asyncio.timeout(COORDINATOR_TIMEOUT):
                 return await self.wall_connector.async_get_wall_connector_data()
+        except TeslaTokenException:
+            _LOGGER.error("Tesla token expired, re-authentication required")
+            raise ConfigEntryAuthFailed
         except Exception:
             _LOGGER.exception("Error fetching wall connector data")
             return self.wall_connector.current_data

@@ -1,6 +1,6 @@
 """Tesla device model."""
 
-from config.custom_components.tesla_connector.owner_api.client import TeslaAPIClient
+from ..owner_api.client import TeslaAPIClient
 
 
 class TeslaBaseDevice:

@@ -8,16 +8,16 @@ import logging
 
 from aiohttp import ClientResponseError
 
-from config.custom_components.tesla_connector.const import (
+from ...const import (
     COMMAND_TIMEOUT,
     WAKE_UP_THRESHOLD,
 )
-from config.custom_components.tesla_connector.models.device import TeslaBaseDevice
-from config.custom_components.tesla_connector.owner_api.api_response import (
+from ..device import TeslaBaseDevice
+from ...owner_api.api_response import (
     TeslaAPIResponse,
 )
-from config.custom_components.tesla_connector.owner_api.client import TeslaAPIClient
-from config.custom_components.tesla_connector.owner_api.exceptions import (
+from ...owner_api.client import TeslaAPIClient
+from ...owner_api.exceptions import (
     TeslaBaseException,
 )
 

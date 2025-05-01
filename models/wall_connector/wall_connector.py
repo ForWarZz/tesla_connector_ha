@@ -1,10 +1,8 @@
 """Wall Connector models."""
 
-from config.custom_components.tesla_connector.models.device import TeslaBaseDevice
-from config.custom_components.tesla_connector.models.wall_connector.wall_connector_data import (
-    WallConnectorData,
-)
-from config.custom_components.tesla_connector.owner_api.client import TeslaAPIClient
+from ...owner_api.client import TeslaAPIClient
+from ..device import TeslaBaseDevice
+from .wall_connector_data import WallConnectorData
 
 
 class WallConnector(TeslaBaseDevice):

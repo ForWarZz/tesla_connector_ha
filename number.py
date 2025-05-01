@@ -1,18 +1,15 @@
 """Tesla Connector Number Entity."""
 
-from config.custom_components.tesla_connector.base_sensor import (
-    TeslaBaseNumber,
-    TeslaSensorDescription,
-)
-from config.custom_components.tesla_connector.coordinator import TeslaVehicleCoordinator
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
 from homeassistant.components.number import NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .base_sensor import TeslaBaseNumber, TeslaSensorDescription
 from .const import DOMAIN, SENSOR_CHARGE_AMPS, SENSOR_CHARGE_LIMIT_SOC
+from .coordinator import TeslaVehicleCoordinator
+from .models.vehicle.vehicle import TeslaVehicle
 
 NUMBER_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     SENSOR_CHARGE_LIMIT_SOC: TeslaSensorDescription(

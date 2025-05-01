@@ -4,10 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from config.custom_components.tesla_connector.models.vehicle.vehicle import TeslaVehicle
-from config.custom_components.tesla_connector.models.wall_connector.wall_connector import (
-    WallConnector,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -19,6 +15,8 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
+from .models.vehicle.vehicle import TeslaVehicle
+from .models.wall_connector.wall_connector import WallConnector
 from .owner_api.client import TeslaAPIClient
 
 _LOGGER = logging.getLogger(__name__)
