@@ -34,9 +34,9 @@ SENSOR_MINUTES_TO_FULL_CHARGE = "minutes_to_full_charge"
 SENSOR_CHARGING_STATE = "charging_state"
 SENSOR_ODOMETER = "odometer"
 SENSOR_CHARGER_VOLTAGE = "charger_voltage"
+SENSOR_CHARGE_ENERGY_ADDED = "charge_energy_added"
 
 SENSOR_WALL_CONNECTOR_VIN = "vin"
-SENSOR_WALL_CONNECTOR_SESSION_CHARGE = "session_charge"
 
 # Binary Sensor Types
 BINARY_SENSOR_LOCKED = "locked"

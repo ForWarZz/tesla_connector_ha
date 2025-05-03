@@ -28,6 +28,7 @@ class VehicleChargeState:
         self.minutes_to_full_charge = data.get("minutes_to_full_charge", 0)
         self.charging_state = data.get("charging_state", ChargingState.STOPPED)
         self.charger_voltage = data.get("charger_voltage", 240)
+        self.charge_energy_added = data.get("charge_energy_added", 0)
 
 
 class VehicleState:

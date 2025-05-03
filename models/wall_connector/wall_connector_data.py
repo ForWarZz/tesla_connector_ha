@@ -14,4 +14,3 @@ class WallConnectorData:
         )
 
         self.vin = self._data.get("vin", "")
-        self.wall_connector_power = self._data.get("wall_connector_power", 0)

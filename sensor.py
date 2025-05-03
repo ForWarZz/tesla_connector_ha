@@ -20,12 +20,12 @@ from .const import (
     SENSOR_BATTERY_RANGE,
     SENSOR_CHARGE_AMPS,
     SENSOR_CHARGE_CURRENT,
+    SENSOR_CHARGE_ENERGY_ADDED,
     SENSOR_CHARGE_LIMIT_SOC,
     SENSOR_CHARGER_VOLTAGE,
     SENSOR_CHARGING_STATE,
     SENSOR_MINUTES_TO_FULL_CHARGE,
     SENSOR_ODOMETER,
-    SENSOR_WALL_CONNECTOR_SESSION_CHARGE,
     SENSOR_WALL_CONNECTOR_VIN,
 )
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
@@ -91,6 +91,13 @@ SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         device_class=SensorDeviceClass.VOLTAGE,
         icon="mdi:flash",
     ),
+    SENSOR_CHARGE_ENERGY_ADDED: TeslaSensorDescription(
+        name="Session de charge",
+        value_path="charge_state.charge_energy_added",
+        unit=UnitOfEnergy.KILO_WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:car-electric",
+    ),
 }
 
 WALL_CONNECTOR_SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
@@ -98,13 +105,6 @@ WALL_CONNECTOR_SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         name="VIN connecté",
         value_path="vin",
         icon="mdi:car-key",
-    ),
-    SENSOR_WALL_CONNECTOR_SESSION_CHARGE: TeslaSensorDescription(
-        name="Charge de la session",
-        value_path="wall_connector_power",
-        unit=UnitOfEnergy.WATT_HOUR,
-        device_class=SensorDeviceClass.ENERGY,
-        icon="mdi:car-electric",
     ),
 }
 
