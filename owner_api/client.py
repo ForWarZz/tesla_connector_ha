@@ -44,7 +44,6 @@ class TeslaAPIClient:
         headers = {
             "Authorization": f"Bearer {self._access_token}",
             "Content-Type": "application/json",
-            "X-Tesla-User-Agent": "TeslaApp/4.43.5-3224/eb0e53992e/ios/18.4.1",
         }
         kwargs["headers"] = headers
 

@@ -8,12 +8,20 @@ import logging
 
 from aiohttp import ClientResponseError
 
-from ...const import COMMAND_TIMEOUT, WAKE_UP_THRESHOLD
-from ...owner_api.api_response import TeslaAPIResponse
-from ...owner_api.client import TeslaAPIClient
-from ...owner_api.exceptions import TeslaBaseException
+from ...const import (
+    COMMAND_TIMEOUT,
+    WAKE_UP_THRESHOLD,
+)
 from ..device import TeslaBaseDevice
-from .vehicle_data import ChargingState, VehicleData
+from ...owner_api.api_response import (
+    TeslaAPIResponse,
+)
+from ...owner_api.client import TeslaAPIClient
+from ...owner_api.exceptions import (
+    TeslaBaseException,
+)
+
+from .vehicle_data import VehicleData, ChargingState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,13 +47,17 @@ class TeslaVehicle(TeslaBaseDevice):
 
     async def async_get_vehicle_data(self) -> VehicleData:
         """Get vehicle data from the Tesla API."""
-        vehicle_data = await self._apiClient.async_get_vehicle_data(self.vin)
+        try:
+            vehicle_data = await self._apiClient.async_get_vehicle_data(self.vin)
+            self._current_data = VehicleData(vehicle_data.data)
+        except ClientResponseError as err:
+            if err.status == 408:
+                _LOGGER.info(
+                    "Request timed out, vehicle is potentially offline.. getting cached data"
+                )
+                if self._current_data is not None:
+                    self._current_data.state = "offline"
 
-        if vehicle_data.data.get("cached_data"):
-            _LOGGER.debug("Using cached data for vehicle %s", self.vin)
-            return self._current_data
-
-        self._current_data = VehicleData(vehicle_data.data)
         return self._current_data
 
     async def _async_wake_up(self) -> TeslaAPIResponse:
