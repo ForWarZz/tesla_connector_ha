@@ -8,20 +8,12 @@ import logging
 
 from aiohttp import ClientResponseError
 
-from ...const import (
-    COMMAND_TIMEOUT,
-    WAKE_UP_THRESHOLD,
-)
-from ..device import TeslaBaseDevice
-from ...owner_api.api_response import (
-    TeslaAPIResponse,
-)
+from ...const import COMMAND_TIMEOUT, SLEEP_THRESHOLD, WAKE_UP_THRESHOLD
+from ...owner_api.api_response import TeslaAPIResponse
 from ...owner_api.client import TeslaAPIClient
-from ...owner_api.exceptions import (
-    TeslaBaseException,
-)
-
-from .vehicle_data import VehicleData, ChargingState
+from ...owner_api.exceptions import TeslaBaseException
+from ..device import TeslaBaseDevice
+from .vehicle_data import ChargingState, VehicleData
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +25,9 @@ class TeslaVehicle(TeslaBaseDevice):
         """Initialize a TeslaVehicle with a VIN and Tesla API client."""
         super().__init__(vin, apiClient)
         self._current_data = None
+
         self._last_wake_up: datetime = None
+        self._last_command_send: datetime = None
 
     @property
     def vin(self) -> str:
@@ -47,6 +41,19 @@ class TeslaVehicle(TeslaBaseDevice):
 
     async def async_get_vehicle_data(self) -> VehicleData:
         """Get vehicle data from the Tesla API."""
+        if (
+            self._last_command_send
+            and datetime.now() - self._last_command_send
+            < timedelta(minutes=SLEEP_THRESHOLD)
+        ):
+            _LOGGER.debug(
+                "Skipping vehicle data fetch to allow sleep mode, last command sent at %s",
+                self._last_command_send,
+            )
+            if self._current_data is not None:
+                self._current_data.state = "offline"
+            return self._current_data
+
         try:
             vehicle_data = await self._apiClient.async_get_vehicle_data(self.vin)
             self._current_data = VehicleData(vehicle_data.data)
@@ -83,7 +90,8 @@ class TeslaVehicle(TeslaBaseDevice):
     ) -> TeslaAPIResponse:
         """Send a command to the vehicle."""
         start_time = datetime.now()
-        _LOGGER.debug("Sending command to vehicle: %s", self.vin)
+
+        _LOGGER.debug("Sending command to vehicle %s: %s", command.__name__, self.vin)
 
         await self.async_ensure_car_woke_up()
         async with asyncio.timeout(delay=COMMAND_TIMEOUT):
@@ -94,6 +102,8 @@ class TeslaVehicle(TeslaBaseDevice):
                 )
 
         duration = datetime.now() - start_time
+        self._last_command_send = datetime.now()
+
         _LOGGER.info(
             "Command completed for VIN %s in %ss", self.vin, duration.total_seconds()
         )
