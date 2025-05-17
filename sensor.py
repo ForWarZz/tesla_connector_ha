@@ -26,6 +26,7 @@ from .const import (
     SENSOR_CHARGING_STATE,
     SENSOR_MINUTES_TO_FULL_CHARGE,
     SENSOR_ODOMETER,
+    SENSOR_VEHICLE_STATE,
     SENSOR_WALL_CONNECTOR_VIN,
 )
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
@@ -97,6 +98,11 @@ SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         unit=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:car-electric",
+    ),
+    SENSOR_VEHICLE_STATE: TeslaSensorDescription(
+        name="État du véhicule",
+        value_path="vehicle_state.state",
+        icon="mdi:car-key",
     ),
 }
 

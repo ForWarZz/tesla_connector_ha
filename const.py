@@ -36,6 +36,7 @@ SENSOR_CHARGING_STATE = "charging_state"
 SENSOR_ODOMETER = "odometer"
 SENSOR_CHARGER_VOLTAGE = "charger_voltage"
 SENSOR_CHARGE_ENERGY_ADDED = "charge_energy_added"
+SENSOR_VEHICLE_STATE = "state"
 
 SENSOR_WALL_CONNECTOR_VIN = "vin"
 
