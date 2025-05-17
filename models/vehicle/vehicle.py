@@ -44,7 +44,7 @@ class TeslaVehicle(TeslaBaseDevice):
         if (
             self._last_command_send
             and datetime.now() - self._last_command_send
-            < timedelta(minutes=SLEEP_THRESHOLD)
+            > timedelta(minutes=SLEEP_THRESHOLD)
         ):
             _LOGGER.debug(
                 "Skipping vehicle data fetch to allow sleep mode, last command sent at %s",
@@ -71,7 +71,7 @@ class TeslaVehicle(TeslaBaseDevice):
         """Wake up the vehicle."""
         return await self._apiClient.async_wake_up_car(self.vin)
 
-    async def async_ensure_car_woke_up(self) -> TeslaAPIResponse:
+    async def async_ensure_car_woke_up(self, force=False) -> TeslaAPIResponse:
         """Wake up the vehicle if necessary."""
         should_wake_up = (
             self._last_wake_up is None
@@ -79,6 +79,7 @@ class TeslaVehicle(TeslaBaseDevice):
             or self._current_data.state == "offline"
             or datetime.now() - self._last_wake_up
             > timedelta(minutes=WAKE_UP_THRESHOLD)
+            or force
         )
 
         if should_wake_up:
@@ -91,7 +92,7 @@ class TeslaVehicle(TeslaBaseDevice):
         """Send a command to the vehicle."""
         start_time = datetime.now()
 
-        _LOGGER.debug("Sending command to vehicle %s: %s", command.__name__, self.vin)
+        _LOGGER.debug("Sending command to vehicle: %s", self.vin)
 
         await self.async_ensure_car_woke_up()
         async with asyncio.timeout(delay=COMMAND_TIMEOUT):

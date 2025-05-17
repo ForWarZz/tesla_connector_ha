@@ -1,5 +1,7 @@
 """Tesla Connector Sensor Integration."""
 
+import logging
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -101,8 +103,8 @@ SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
     ),
     SENSOR_VEHICLE_STATE: TeslaSensorDescription(
         name="État du véhicule",
-        value_path="vehicle_state.state",
-        icon="mdi:car-key",
+        value_path="state",
+        icon="mdi:car-connected",
     ),
 }
 
@@ -113,6 +115,8 @@ WALL_CONNECTOR_SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         icon="mdi:car-key",
     ),
 }
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -138,7 +142,10 @@ async def async_setup_entry(
     for sensor_key, sensor_description in WALL_CONNECTOR_SENSOR_DESCRIPTIONS.items():
         sensors.append(
             TeslaWallConnectorSensor(
-                wall_connector_coordinator, sensor_key, sensor_description
+                wall_connector_coordinator,
+                sensor_key,
+                sensor_description,
+                vehicle_coordinator.vehicle,
             )
         )
 
@@ -171,11 +178,22 @@ class TeslaWallConnectorSensor(TeslaBaseSensor, SensorEntity):
         coordinator: TeslaWallConnectorCoordinator,
         key: str,
         description: TeslaSensorDescription,
+        vehicle: TeslaVehicle,
     ) -> None:
         """Initialize the Tesla Wall Connector sensor."""
         super().__init__(coordinator, key, description)
         self._wall_connector: WallConnector = self._device
 
-    def _update_state(self, value):
+        self._vehicle = vehicle
+
+    async def _update_state(self, value):
         """Update the state of the sensor."""
+        if (
+            self._key == SENSOR_WALL_CONNECTOR_VIN
+            and value != self._attr_native_value
+            and value == self._vehicle.vin
+        ):
+            _LOGGER.debug("VIN sensor changed, waking up the vehicle")
+            await self._vehicle.async_ensure_car_woke_up(force=True)
+
         self._attr_native_value = value

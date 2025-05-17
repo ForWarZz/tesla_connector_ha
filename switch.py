@@ -57,7 +57,7 @@ class TeslaSwitch(TeslaBaseSensor, SwitchEntity):
         super().__init__(coordinator, key, description)
         self._vehicle: TeslaVehicle = self._device
 
-    def _update_state(self, value):
+    async def _update_state(self, value):
         """Update the state of the switch."""
         self._attr_is_on = (
             value == ChargingState.CHARGING
