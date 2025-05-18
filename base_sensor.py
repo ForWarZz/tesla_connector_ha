@@ -92,7 +92,7 @@ class TeslaBaseSensor(CoordinatorEntity):
         self._update_state(self._get_value(data))
         super()._handle_coordinator_update()
 
-    async def _update_state(self, value):
+    def _update_state(self, value):
         """Update the state of the sensor."""
         raise NotImplementedError("Must be implemented by subclasses.")
 

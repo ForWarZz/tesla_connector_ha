@@ -63,7 +63,7 @@ class TeslaNumber(TeslaBaseNumber):
         super().__init__(coordinator, key, description)
         self._vehicle: TeslaVehicle = self._device
 
-    async def _update_state(self, value):
+    def _update_state(self, value):
         """Update the state of the number entity."""
         self._attr_native_value = value
 

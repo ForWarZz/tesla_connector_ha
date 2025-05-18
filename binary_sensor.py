@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .base_sensor import TeslaBaseBinarySensor, TeslaSensorDescription
-from .const import BINARY_SENSOR_LOCKED, DOMAIN
+from .const import BINARY_SENSOR_LOCKED, DOMAIN, SENSOR_VEHICLE_STATE
 from .coordinator import TeslaVehicleCoordinator
 from .models.vehicle.vehicle import TeslaVehicle
 
@@ -17,6 +17,13 @@ BINARY_SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         device_class=BinarySensorDeviceClass.LOCK,
         on_value="Vérrouillé",
         off_value="Déverrouillé",
+    ),
+    SENSOR_VEHICLE_STATE: TeslaSensorDescription(
+        name="État du véhicule",
+        value_path="state",
+        icon="mdi:car-connected",
+        on_value="En ligne",
+        off_value="Endormie",
     ),
 }
 
@@ -48,6 +55,9 @@ class TeslaBinarySensor(TeslaBaseBinarySensor):
         super().__init__(coordinator, key, description)
         self._vehicle: TeslaVehicle = self._device
 
-    async def _update_state(self, value):
+    def _update_state(self, value):
         """Update the state of the sensor."""
-        self._attr_is_on = value
+        if self._key == SENSOR_VEHICLE_STATE:
+            self._attr_is_on = value.lower() == "online"
+        else:
+            self._attr_is_on = value

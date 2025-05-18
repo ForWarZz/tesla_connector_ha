@@ -85,6 +85,7 @@ class TeslaVehicle(TeslaBaseDevice):
         if should_wake_up:
             await self._async_wake_up()
             self._last_wake_up = datetime.now()
+            self._last_command_send = datetime.now()
 
     async def _async_send_command(
         self, command: Callable[..., TeslaAPIResponse]

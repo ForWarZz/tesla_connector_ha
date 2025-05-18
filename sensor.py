@@ -1,5 +1,6 @@
 """Tesla Connector Sensor Integration."""
 
+import asyncio
 import logging
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
@@ -28,7 +29,6 @@ from .const import (
     SENSOR_CHARGING_STATE,
     SENSOR_MINUTES_TO_FULL_CHARGE,
     SENSOR_ODOMETER,
-    SENSOR_VEHICLE_STATE,
     SENSOR_WALL_CONNECTOR_VIN,
 )
 from .coordinator import TeslaVehicleCoordinator, TeslaWallConnectorCoordinator
@@ -100,11 +100,6 @@ SENSOR_DESCRIPTIONS: dict[str, TeslaSensorDescription] = {
         unit=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:car-electric",
-    ),
-    SENSOR_VEHICLE_STATE: TeslaSensorDescription(
-        name="État du véhicule",
-        value_path="state",
-        icon="mdi:car-connected",
     ),
 }
 
@@ -186,7 +181,7 @@ class TeslaWallConnectorSensor(TeslaBaseSensor, SensorEntity):
 
         self._vehicle = vehicle
 
-    async def _update_state(self, value):
+    def _update_state(self, value):
         """Update the state of the sensor."""
         if (
             self._key == SENSOR_WALL_CONNECTOR_VIN
@@ -194,6 +189,6 @@ class TeslaWallConnectorSensor(TeslaBaseSensor, SensorEntity):
             and value == self._vehicle.vin
         ):
             _LOGGER.debug("VIN sensor changed, waking up the vehicle")
-            await self._vehicle.async_ensure_car_woke_up(force=True)
+            asyncio.ensure_future(self._vehicle.async_ensure_car_woke_up(force=True))
 
         self._attr_native_value = value
