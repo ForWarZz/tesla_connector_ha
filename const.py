@@ -23,7 +23,7 @@ COORDINATOR_TIMEOUT = 10  # seconds
 WAKE_UP_TIMEOUT = 30  # seconds
 WAKE_UP_THRESHOLD = 30  # minutes
 COMMAND_TIMEOUT = 10  # seconds
-SLEEP_THRESHOLD = 7  # minutes
+SLEEP_THRESHOLD = 15  # minutes
 
 # Sensor Types
 SENSOR_BATTERY_LEVEL = "battery_level"
