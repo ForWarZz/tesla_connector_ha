@@ -184,7 +184,10 @@ class TeslaWallConnectorSensor(TeslaBaseSensor, SensorEntity):
     def _update_state(self, value):
         """Update the state of the sensor."""
         if self._key == SENSOR_WALL_CONNECTOR_VIN:
-            if self._vehicle.vin in (value, self._attr_native_value):
+            if (
+                self._vehicle.vin in (value, self._attr_native_value)
+                and self._attr_native_value != value
+            ):
                 _LOGGER.debug("VIN sensor changed, waking up the vehicle")
                 asyncio.ensure_future(
                     self._vehicle.async_ensure_car_woke_up(force=True)
