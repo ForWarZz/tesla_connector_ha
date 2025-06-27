@@ -46,6 +46,9 @@ class TeslaVehicle(TeslaBaseDevice):
             self._last_command_send
             and datetime.now() - self._last_command_send
             > timedelta(minutes=SLEEP_THRESHOLD)
+        ) or (
+            self._current_data
+            and self._current_data.charge_state.charging_state != ChargingState.CHARGING
         ):
             _LOGGER.debug(
                 "Skipping vehicle data fetch to allow sleep mode, last command sent at %s",
