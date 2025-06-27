@@ -20,7 +20,7 @@ CONF_WALL_CONNECTOR_ID = "wall_connector_id"
 
 UPDATE_INTERVAL = 60  # seconds
 COORDINATOR_TIMEOUT = 10  # seconds
-WAKE_UP_TIMEOUT = 30  # seconds
+WAKE_UP_TIMEOUT = 60  # seconds
 WAKE_UP_THRESHOLD = 30  # minutes
 COMMAND_TIMEOUT = 10  # seconds
 SLEEP_THRESHOLD = 15  # minutes

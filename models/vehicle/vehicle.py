@@ -7,6 +7,7 @@ from functools import partial
 import logging
 
 from aiohttp import ClientResponseError
+from asyncio import TimeoutError
 
 from ...const import COMMAND_TIMEOUT, SLEEP_THRESHOLD, WAKE_UP_THRESHOLD
 from ...owner_api.api_response import TeslaAPIResponse
@@ -90,18 +91,33 @@ class TeslaVehicle(TeslaBaseDevice):
     async def _async_send_command(
         self, command: Callable[..., TeslaAPIResponse]
     ) -> TeslaAPIResponse:
-        """Send a command to the vehicle."""
+        """Send a command to the vehicle with retries."""
         start_time = datetime.now()
-
         _LOGGER.debug("Sending command to vehicle: %s", self.vin)
 
         await self.async_ensure_car_woke_up()
-        async with asyncio.timeout(delay=COMMAND_TIMEOUT):
-            response: TeslaAPIResponse = await command()
-            if not response.result:
-                raise TeslaBaseException(
-                    f"Command failed for vehicle vin: {self.vin} REASON: {response.reason}"
+
+        retries = 3
+        for attempt in range(1, retries + 1):
+            try:
+                async with asyncio.timeout(delay=COMMAND_TIMEOUT):
+                    response: TeslaAPIResponse = await command()
+                    if not response.result:
+                        raise TeslaBaseException(
+                            f"Command failed for vehicle vin: {self.vin} REASON: {response.reason}"
+                        )
+                    break
+            except (TimeoutError, TeslaBaseException) as err:
+                _LOGGER.warning(
+                    "Attempt %d/%d failed for VIN %s: %s",
+                    attempt,
+                    retries,
+                    self.vin,
+                    err,
                 )
+                if attempt == retries:
+                    raise
+                await asyncio.sleep(5)
 
         duration = datetime.now() - start_time
         self._last_command_send = datetime.now()
@@ -138,7 +154,7 @@ class TeslaVehicle(TeslaBaseDevice):
         _LOGGER.debug("Waiting for vehicle to reach charging state %s", state)
 
         while datetime.now() - start_time < timedelta(seconds=30):
-            await asyncio.sleep(2)
+            await asyncio.sleep(5)
             await self.async_get_vehicle_data()
 
             if self.current_data.charge_state.charging_state == state:
